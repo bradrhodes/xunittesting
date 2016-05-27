@@ -12,17 +12,44 @@ namespace XUnitIntro.Tests
 	    public class WhenDecidingWhatToDo
 	    {
 		    [Fact]
-		    public void ItShouldTellMeToStayInside()
+		    public void ItShouldTellMeToGoOutside()
 		    {
 			    // arrange
-				var sut = new DayOffPlanner();
+				var weatherChecker = new WeatherChecker();
+				var sut = new DayOffPlanner(weatherChecker);
 
 				// act
 			    var result = sut.WhatShouldIDoToday();
 
+			    var weather = weatherChecker.IsItNiceOutside();
+
+			    var expectedResult = weather ? Activity.GoOutside : Activity.StayInside;
+
 				// assert
-				Assert.Equal(Activity.StayInside, result);
+				Assert.Equal(expectedResult, result);
 		    }
 	    }
     }
+
+	public class WeatherCheckerTests
+	{
+		public class WhenICheckTheWeather
+		{
+			public class AndItIsNotNiceOutside
+			{
+				[Fact]
+				public void ItShouldReturnTrue()
+				{
+					// arrange
+					var sut = new WeatherChecker();
+					
+					// act
+					var result = sut.IsItNiceOutside();
+
+					// assert
+					Assert.False(result);
+				}
+			}
+		}
+	}
 }
