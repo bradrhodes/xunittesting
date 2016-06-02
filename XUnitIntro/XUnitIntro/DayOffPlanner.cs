@@ -26,10 +26,37 @@ namespace XUnitIntro
 
 	public class WeatherChecker : ICheckTheWeather
 	{
+		private readonly IProvideTemperature _temperatureProvider;
+		private readonly ICheckIfItsRaining _rainChecker;
+
+		public WeatherChecker(IProvideTemperature temperatureProvider, ICheckIfItsRaining rainChecker)
+		{
+			if (temperatureProvider == null) throw new ArgumentNullException(nameof(temperatureProvider));
+			if (rainChecker == null) throw new ArgumentNullException(nameof(rainChecker));
+			_temperatureProvider = temperatureProvider;
+			_rainChecker = rainChecker;
+		}
+
 		public bool IsItNiceOutside()
 		{
-			return false;
+			if (_temperatureProvider.GetTemperature() >= 30)
+				return true;
+
+			if (_rainChecker.IsItRaining())
+				return false;
+
+			return _temperatureProvider.GetTemperature() >= 20;
 		}
+	}
+
+	public interface ICheckIfItsRaining
+	{
+		bool IsItRaining();
+	}
+
+	public interface IProvideTemperature
+	{
+		int GetTemperature();
 	}
 
 	public interface ICheckTheWeather
