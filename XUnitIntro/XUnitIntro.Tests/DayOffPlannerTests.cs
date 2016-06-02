@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Security.Policy;
 using System.Text;
+using FakeItEasy;
 using Xunit;
 
 namespace XUnitIntro.Tests
@@ -19,7 +20,9 @@ namespace XUnitIntro.Tests
 				public void ItShouldTellMeToGoOutside()
 				{
 					// arrange
-					var weatherChecker = new NiceWeatherChecker();
+					var weatherChecker = A.Fake<ICheckTheWeather>();
+					A.CallTo(() => weatherChecker.IsItNiceOutside()).Returns(true);
+
 					var sut = new DayOffPlanner(weatherChecker);
 
 					// act
@@ -35,7 +38,9 @@ namespace XUnitIntro.Tests
 			    public void ItShouldTellMeToStayInside()
 			    {
 				    // arrange
-					var weatherChecker = new BadWeatherChecker();
+				    var weatherChecker = A.Fake<ICheckTheWeather>();
+				    A.CallTo(() => weatherChecker.IsItNiceOutside()).Returns(false);
+
 					var sut = new DayOffPlanner(weatherChecker);
 
 				    // act
@@ -46,22 +51,6 @@ namespace XUnitIntro.Tests
 					Assert.Equal(Activity.StayInside, result);
 			    }
 		    }
-
-			public class NiceWeatherChecker : ICheckTheWeather
-			{
-				public bool IsItNiceOutside()
-				{
-					return true;
-				}
-			}
-
-			public class BadWeatherChecker : ICheckTheWeather
-			{
-				public bool IsItNiceOutside()
-				{
-					return false;
-				}
-			}
 	    }
     }
 
