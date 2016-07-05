@@ -6,26 +6,49 @@ using System.Linq;
 using System.Security.Policy;
 using System.Text;
 using FakeItEasy;
+using IQ.Platform.TestUtilities;
 using Ploeh.AutoFixture;
 using Xunit;
 using Xunit.Sdk;
 
 namespace XUnitIntro.Tests
 {
-    public class DayOffPlannerTests
+	public class NiceWeatherCustomization : ICustomization
+	{
+		public void Customize(IFixture fixture)
+		{
+			var weatherChecker = A.Fake<ICheckTheWeather>();
+			A.CallTo(() => weatherChecker.IsItNiceOutside()).Returns(true);
+
+			fixture.Inject(weatherChecker);
+		}
+	}
+
+	public class BadWeatherCustomization : ICustomization
+	{
+		public void Customize(IFixture fixture)
+		{
+			var weatherChecker = A.Fake<ICheckTheWeather>();
+			A.CallTo(() => weatherChecker.IsItNiceOutside()).Returns(false);
+
+			fixture.Inject(weatherChecker);
+		}
+	}
+
+	public class DayOffPlannerTests
     {
 	    public class WhenDecidingWhatToDo
 	    {
 		    public class AndTheWeatherIsNiceOutside
 		    {
-					
-				[Fact]
-				public void ItShouldTellMeToGoOutside()
+
+//				[Theory, AutoFakeItEasyData(typeof(NiceWeatherCustomization))]
+				//				[Fact]
+				[Theory, AutoFakeItEasyData]
+				public void ItShouldTellMeToGoOutside(/*ICheckTheWeather weatherChecker*/)
 				{
-					// arrange
 					var weatherChecker = A.Fake<ICheckTheWeather>();
 					A.CallTo(() => weatherChecker.IsItNiceOutside()).Returns(true);
-
 					var sut = new DayOffPlanner(weatherChecker);
 
 					// act
