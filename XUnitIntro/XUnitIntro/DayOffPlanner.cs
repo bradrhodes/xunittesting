@@ -9,7 +9,7 @@ namespace XUnitIntro
 	{
 		private readonly ICheckTheWeather _weatherChecker;
 
-		public DayOffPlanner(ICheckTheWeather weatherChecker)
+		public DayOffPlanner(ICheckTheWeather weatherChecker, IDoSomethingElse something)
 		{
 			if (weatherChecker == null) throw new ArgumentNullException(nameof(weatherChecker));
 			_weatherChecker = weatherChecker;
@@ -23,6 +23,8 @@ namespace XUnitIntro
 			return Activity.StayInside;
 		}
 	}
+
+	public interface IDoSomethingElse { }
 
 	public class WeatherChecker : ICheckTheWeather
 	{

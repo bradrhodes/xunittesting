@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Common;
@@ -8,7 +9,10 @@ using System.Text;
 using FakeItEasy;
 using IQ.Platform.TestUtilities;
 using Ploeh.AutoFixture;
+using Ploeh.AutoFixture.AutoFakeItEasy;
+using Ploeh.AutoFixture.Xunit;
 using Xunit;
+using Xunit.Extensions;
 using Xunit.Sdk;
 
 namespace XUnitIntro.Tests
@@ -18,19 +22,8 @@ namespace XUnitIntro.Tests
 		public void Customize(IFixture fixture)
 		{
 			var weatherChecker = A.Fake<ICheckTheWeather>();
+
 			A.CallTo(() => weatherChecker.IsItNiceOutside()).Returns(true);
-
-			fixture.Inject(weatherChecker);
-		}
-	}
-
-	public class BadWeatherCustomization : ICustomization
-	{
-		public void Customize(IFixture fixture)
-		{
-			var weatherChecker = A.Fake<ICheckTheWeather>();
-			A.CallTo(() => weatherChecker.IsItNiceOutside()).Returns(false);
-
 			fixture.Inject(weatherChecker);
 		}
 	}
@@ -41,17 +34,17 @@ namespace XUnitIntro.Tests
 	    {
 		    public class AndTheWeatherIsNiceOutside
 		    {
-
-//				[Theory, AutoFakeItEasyData(typeof(NiceWeatherCustomization))]
-				//				[Fact]
-				[Theory, AutoFakeItEasyData]
-				public void ItShouldTellMeToGoOutside(/*ICheckTheWeather weatherChecker*/)
+				//				[Theory, AutoFakeItEasyData(typeof(NiceWeatherCustomization))]
+				[Fact]
+				public void ItShouldTellMeToGoOutside(/*DayOffPlanner sut*/)
 				{
-					var weatherChecker = A.Fake<ICheckTheWeather>();
-					A.CallTo(() => weatherChecker.IsItNiceOutside()).Returns(true);
-					var sut = new DayOffPlanner(weatherChecker);
+					var fixture = new Fixture().Customize();
+					fixture.CustomizeWithFakeItEasy(new NiceWeatherCustomization());
 
-					// act
+					var checker = fixture.Create<ICheckTheWeather>();
+					var sut = fixture.Create<DayOffPlanner>();
+
+//					var sut = new DayOffPlanner(weatherChecker);
 					var result = sut.WhatShouldIDoToday();
 
 					Assert.Equal(Activity.GoOutside, result);
@@ -60,18 +53,14 @@ namespace XUnitIntro.Tests
 
 		    public class AndTheWeatherIsNotNiceOutside
 		    {
-			    [Fact]
-			    public void ItShouldTellMeToStayInside()
+			    [Theory, AutoFakeItEasyData]
+			    public void ItShouldTellMeToStayInside([Frozen] ICheckTheWeather weatherChecker, int temp, DayOffPlanner sut)
 			    {
-				    // arrange
-				    var weatherChecker = A.Fake<ICheckTheWeather>();
-				    A.CallTo(() => weatherChecker.IsItNiceOutside()).Returns(false);
+					// arrange
+					A.CallTo(() => weatherChecker.IsItNiceOutside()).Returns(false);
 
-					var sut = new DayOffPlanner(weatherChecker);
-
-				    // act
+					// act
 				    var result = sut.WhatShouldIDoToday();
-
 
 				    // assert
 					Assert.Equal(Activity.StayInside, result);
@@ -85,6 +74,7 @@ namespace XUnitIntro.Tests
 		public class WhenICheckTheWeather
 		{
 			[Theory]
+			[InlineAutoData()]
 			[InlineData(10, true, false)]
 			[InlineData(10, false, false)]
 			[InlineData(20, true, false)]
